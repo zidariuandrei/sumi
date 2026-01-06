@@ -184,8 +184,9 @@
 
     // Watch for theme changes
     $effect(() => {
-        if (view && $mode) {
-            applyTheme($mode === 'dark');
+        const currentMode = mode.current;
+        if (view && currentMode) {
+            applyTheme(currentMode === 'dark');
         }
     });
 
@@ -230,7 +231,7 @@
             totalSections = book?.sections?.length || 0;
 
             // Apply initial theme and flow mode
-            const isDark = $mode === 'dark';
+            const isDark = mode.current === 'dark';
             view.renderer?.setStyles?.(getReaderCSS(isDark));
             view.renderer?.setAttribute('flow', flow);
 
@@ -274,7 +275,7 @@
 
     function handleLoad(_event: Event) {
         // Re-apply theme when a new section loads
-        const isDark = $mode === 'dark';
+        const isDark = mode.current === 'dark';
         applyTheme(isDark);
     }
 

@@ -135,7 +135,8 @@
             // Render PDF page into canvas context
             const renderContext = {
                 canvasContext: context,
-                viewport: viewport
+                viewport: viewport,
+                canvas: null
             };
 
             const renderTask = page.render(renderContext);

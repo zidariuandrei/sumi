@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { readFile } from '@tauri-apps/plugin-fs';
     import { mode } from 'mode-watcher';
+    import type { View } from 'foliate-js/view.js';
     import ReaderShell from './reader-shell.svelte';
 
     let { path }: { path: string } = $props();
@@ -24,7 +25,7 @@
     let flow = $state<'paginated' | 'scrolled'>('paginated');
 
     // References
-    let view: any = null;
+    let view: View | null = null;
 
     // Generate CSS for the EPUB content based on theme
     function getReaderCSS(isDark: boolean) {
@@ -183,9 +184,8 @@
 
     // Watch for theme changes
     $effect(() => {
-        const currentMode = mode.current;
-        if (view && currentMode) {
-            applyTheme(currentMode === 'dark');
+        if (view && $mode) {
+            applyTheme($mode === 'dark');
         }
     });
 
@@ -211,7 +211,7 @@
             });
 
             // Create the foliate-view element
-            view = document.createElement('foliate-view');
+            view = document.createElement('foliate-view') as unknown as View;
             view.style.cssText = 'width: 100%; height: 100%;';
 
             // Clear container and append view
@@ -222,15 +222,15 @@
             await view.open(file);
 
             // Set up event listeners
-            view.addEventListener('relocate', handleRelocate);
-            view.addEventListener('load', handleLoad);
+            view.addEventListener('relocate', handleRelocate as EventListener);
+            view.addEventListener('load', handleLoad as EventListener);
 
             // Extract metadata
             const book = view.book;
             totalSections = book?.sections?.length || 0;
 
             // Apply initial theme and flow mode
-            const isDark = mode.current === 'dark';
+            const isDark = $mode === 'dark';
             view.renderer?.setStyles?.(getReaderCSS(isDark));
             view.renderer?.setAttribute('flow', flow);
 
@@ -238,15 +238,16 @@
             view.renderer?.next?.();
 
             loading = false;
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error loading EPUB:', err);
-            error = err.message || 'Failed to load EPUB';
+            error = (err instanceof Error ? err.message : String(err)) || 'Failed to load EPUB';
             loading = false;
         }
     }
 
-    function handleRelocate(event: CustomEvent) {
-        const detail = event.detail;
+    function handleRelocate(event: Event) {
+        const customEvent = event as CustomEvent;
+        const detail = customEvent.detail;
         if (detail) {
             // Get overall progress fraction
             progress = detail.fraction ?? 0;
@@ -271,9 +272,9 @@
         }
     }
 
-    function handleLoad(_event: CustomEvent) {
+    function handleLoad(_event: Event) {
         // Re-apply theme when a new section loads
-        const isDark = mode.current === 'dark';
+        const isDark = $mode === 'dark';
         applyTheme(isDark);
     }
 
@@ -296,8 +297,8 @@
 
     onDestroy(() => {
         if (view) {
-            view.removeEventListener('relocate', handleRelocate);
-            view.removeEventListener('load', handleLoad);
+            view.removeEventListener('relocate', handleRelocate as EventListener);
+            view.removeEventListener('load', handleLoad as EventListener);
             view.close?.();
         }
     });

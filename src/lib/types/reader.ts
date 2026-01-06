@@ -63,3 +63,13 @@ export interface BookStatistics {
 export type DrawerType = 'toc' | 'settings' | 'bookmarks' | null;
 export type SortOption = 'title' | 'author' | 'lastRead' | 'dateAdded';
 export type SortDirection = 'asc' | 'desc';
+
+export interface KeyboardShortcut {
+  key: string;
+  action: string;
+  category: 'navigation' | 'ui' | 'reading';
+  description: string;
+  modifiers?: ('Shift' | 'Ctrl' | 'Alt' | 'Meta')[];
+}
+
+export type ShortcutsRegistry = Record<string, KeyboardShortcut>;

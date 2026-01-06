@@ -71,6 +71,17 @@ class BookStore {
         }
     }
 
+    private sanitizeTitle(title: string): string {
+        // 1. Replace underscores with spaces
+        let cleaned = title.replace(/_/g, " ");
+        // 2. Normalize " -- " separators to " - "
+        cleaned = cleaned.replace(/\s+--\s+/g, " - ");
+        // 3. Remove Anna's Archive hashes (32 chars hex)
+        cleaned = cleaned.replace(/\b[a-f0-9]{32}\b/g, "");
+        // 4. Collapse multiple spaces
+        return cleaned.replace(/\s+/g, " ").trim();
+    }
+
     async openBook(path: string) {
         this.activeBookPath = path;
         

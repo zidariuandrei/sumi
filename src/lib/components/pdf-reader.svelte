@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as pdfjsLib from 'pdfjs-dist';
-    import type { RenderTask } from 'pdfjs-dist';
+    import type { RenderTask, PDFDocumentProxy, PageViewport } from 'pdfjs-dist';
     import { onMount, onDestroy } from 'svelte';
     import { readFile } from '@tauri-apps/plugin-fs';
     import ReaderShell from './reader-shell.svelte';
@@ -19,9 +19,9 @@
     let currentPage = $state(1);
     let scale = $state(1);
     let fitMode = $state<'width' | 'page'>('width');
-    let baseViewport = $state<any>(null);
+    let baseViewport = $state<PageViewport | null>(null);
 
-    let pdfDoc = $state<any>(null);
+    let pdfDoc = $state<PDFDocumentProxy | null>(null);
     let resizeObserver: ResizeObserver | null = null;
     let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -67,9 +67,9 @@
             calculateScale();
             await renderPage(currentPage);
             loading = false;
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error loading PDF:', err);
-            error = err.message || 'Failed to load PDF';
+            error = (err instanceof Error ? err.message : String(err)) || 'Failed to load PDF';
             loading = false;
         }
     }
@@ -135,7 +135,8 @@
             // Render PDF page into canvas context
             const renderContext = {
                 canvasContext: context,
-                viewport: viewport
+                viewport: viewport,
+                canvas: null
             };
 
             const renderTask = page.render(renderContext);
@@ -151,17 +152,19 @@
             textLayerElement.style.top = `${canvas.offsetTop}px`;
 
             const textContent = await page.getTextContent();
+            // @ts-ignore - TextLayer signature varies across pdfjs versions
             const textLayer = new pdfjsLib.TextLayer({
                 textContentSource: textContent,
                 container: textLayerElement,
                 viewport: viewport
             });
             await textLayer.render();
-        } catch (err: any) {
+        } catch (err: unknown) {
             // Ignore cancelled render errors
-            if (err?.name !== 'RenderingCancelledException') {
-                console.error('Error rendering page:', err);
+            if (err && typeof err === 'object' && 'name' in err && (err as any).name === 'RenderingCancelledException') {
+                return;
             }
+            console.error('Error rendering page:', err);
         } finally {
             isRendering = false;
         }

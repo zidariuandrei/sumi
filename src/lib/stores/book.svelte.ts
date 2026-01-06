@@ -1,5 +1,6 @@
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
+import { storage, STORAGE_KEYS } from '$lib/utils/storage';
 
 export interface Book {
     path: string;
@@ -18,23 +19,11 @@ class BookStore {
     }
 
     constructor() {
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem('recentBooks');
-            if (stored) {
-                try {
-                    this.recentBooks = JSON.parse(stored);
-                } catch (err) {
-                    console.error('Failed to parse recentBooks:', err);
-                    this.recentBooks = [];
-                }
-            }
-        }
+        this.recentBooks = storage.get<Book[]>(STORAGE_KEYS.RECENT_BOOKS, []);
     }
 
     private saveToStorage() {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('recentBooks', JSON.stringify(this.recentBooks));
-        }
+        storage.set(STORAGE_KEYS.RECENT_BOOKS, this.recentBooks);
     }
 
     async openFile() {
@@ -53,6 +42,17 @@ class BookStore {
         } catch (err) {
             console.error('Failed to open file:', err);
         }
+    }
+
+    private sanitizeTitle(title: string): string {
+        // 1. Replace underscores with spaces
+        let cleaned = title.replace(/_/g, " ");
+        // 2. Normalize " -- " separators to " - "
+        cleaned = cleaned.replace(/\s+--\s+/g, " - ");
+        // 3. Remove Anna's Archive hashes (32 chars hex)
+        cleaned = cleaned.replace(/\b[a-f0-9]{32}\b/g, "");
+        // 4. Collapse multiple spaces
+        return cleaned.replace(/\s+/g, " ").trim();
     }
 
     async openBook(path: string) {
@@ -80,15 +80,7 @@ class BookStore {
                 if (metadata.title && metadata.title.trim().length > 0) {
                     title = metadata.title;
                 } else {
-                    // Heuristic sanitization if no metadata title
-                    // 1. Replace underscores with spaces
-                    title = title.replace(/_/g, " ");
-                    // 2. Normalize " -- " separators to " - "
-                    title = title.replace(/\s+--\s+/g, " - ");
-                    // 3. Remove Anna's Archive hashes (32 chars hex)
-                    title = title.replace(/\b[a-f0-9]{32}\b/g, "");
-                    // 4. Collapse multiple spaces
-                    title = title.replace(/\s+/g, " ").trim();
+                    title = this.sanitizeTitle(title);
                 }
                 
                 if (metadata.author && metadata.author.trim().length > 0) {

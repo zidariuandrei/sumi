@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
     RECENT_BOOKS: 'recentBooks',
     BOOK_PROGRESS: 'bookProgress', 
     READER_SETTINGS: 'readerSettings',
+    BOOK_SPECIFIC_SETTINGS: 'bookSpecificSettings',
     BOOKMARKS: 'bookmarks',
     READING_STATS: 'readingStats',
 } as const;

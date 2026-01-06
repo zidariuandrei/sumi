@@ -41,6 +41,11 @@ Build a lightweight, high-performance, and privacy-focused ebook reader for Desk
 1.  **Strict Plan Adherence:** Agents must strictly follow the plans provided to them. No additional alterations or "improvements" are allowed outside the scope of the approved plan.
 2.  **Branching Strategy:** All work must be performed on a separate branch prefixed with `ai/` (e.g., `ai/task-name`).
 3.  **No Unauthorized Merges:** Agents are permitted to commit and push to their respective `ai/` branches. However, merging into `main` or any other branch is strictly prohibited without explicit user approval.
+4.  **Multi-Agent Concurrency (Git Worktrees):**
+    *   **Requirement:** When multiple agents operate simultaneously on this local machine, they **MUST** use Git Worktrees to isolate their working environments.
+    *   **Setup:** Run `git worktree add ../sumi-<task-name> <new-branch-name>` (ensure the path is outside the current repo root).
+    *   **Execution:** The agent must effectively "move" to that directory for all file operations and commands.
+    *   **Cleanup:** After pushing changes, run `git worktree remove ../sumi-<task-name>`.
 
 ## 📂 Reference Docs
 Refer to the `research/` directory for deep-dives into specific technologies:

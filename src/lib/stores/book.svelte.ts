@@ -46,13 +46,6 @@ class BookStore {
         storage.set(STORAGE_KEYS.RECENT_BOOKS, this.recentBooks);
     }
 
-    private sanitizeTitle(title: string): string {
-        let cleaned = title.replace(/_/g, " ");
-        cleaned = cleaned.replace(/\s+--\s+/g, " - ");
-        cleaned = cleaned.replace(/\b[a-f0-9]{32}\b/g, "");
-        return cleaned.replace(/\s+/g, " ").trim();
-    }
-
     async openFile() {
         try {
             const selected = await open({

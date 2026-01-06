@@ -48,6 +48,23 @@
     {:else}
       <div class="h-16 w-16 text-muted-foreground/40">?</div>
     {/if}
+
+    <!-- Progress Bar -->
+    {#if (book.progress || 0) > 0 && (book.progress || 0) < 0.99}
+        <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-background/50 backdrop-blur-sm z-10">
+            <div 
+                class="h-full bg-primary transition-all duration-300" 
+                style="width: {Math.round((book.progress || 0) * 100)}%"
+            ></div>
+        </div>
+    {/if}
+    
+    <!-- Finished Badge -->
+    {#if (book.progress || 0) >= 0.99}
+        <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-green-500/90 text-white text-[10px] font-medium shadow-sm z-10">
+            Finished
+        </div>
+    {/if}
     
     <div class="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100 z-10">
         <Button 

@@ -119,7 +119,7 @@
       <div class="flex items-center gap-4">
         <div class="relative w-full">
           <Input
-            bind:this={inputRef}
+            bind:ref={inputRef}
             bind:value={inputValue}
             placeholder={inputMode === "page" ? "Page number" : "Percentage (0-100)"}
             onkeydown={handleKeydown}
